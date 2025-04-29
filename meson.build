@@ -228,6 +228,10 @@ elif host_machine.system() == 'aero'
 	internal_conf.set10('MLIBC_MAP_DSO_SEGMENTS', true)
 	internal_conf.set10('MLIBC_MAP_FILE_WINDOWS', true)
 	subdir('sysdeps/aero')
+elif host_machine.system() == 'aether'
+	rtld_include_dirs += include_directories('sysdeps/aether/include')
+	libc_include_dirs += include_directories('sysdeps/aether/include')
+	subdir('sysdeps/aether')
 elif host_machine.system() == 'managarm'
 	# TODO: Adopt the include_directories() commands from the managarm meson.build.
 	rtld_include_dirs += include_directories('sysdeps/managarm/include')
