@@ -232,6 +232,10 @@ elif host_machine.system() == 'aether'
 	rtld_include_dirs += include_directories('sysdeps/aether/include')
 	libc_include_dirs += include_directories('sysdeps/aether/include')
 	subdir('sysdeps/aether')
+elif host_machine.system() == 'dlos'
+	rtld_include_dirs += include_directories('sysdeps/doglinkos-2nd/include')
+	libc_include_dirs += include_directories('sysdeps/doglinkos-2nd/include')
+	subdir('sysdeps/doglinkos-2nd')
 elif host_machine.system() == 'managarm'
 	# TODO: Adopt the include_directories() commands from the managarm meson.build.
 	rtld_include_dirs += include_directories('sysdeps/managarm/include')

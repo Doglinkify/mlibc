@@ -57,4 +57,3 @@ void set_startup_data(int argc, char **argv, char **envp) {
 }
 
 } // namespace mlibc
-

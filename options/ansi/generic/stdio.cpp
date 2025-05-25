@@ -993,14 +993,14 @@ int putchar(int c) {
 }
 
 int puts(const char *string) {
-	auto file = static_cast<mlibc::abstract_file *>(stdout);
+	auto file = static_cast<mlibc::fd_file *>(stdout);
 	frg::unique_lock lock(file->_lock);
 
 	size_t progress = 0;
 	size_t len = strlen(string);
 	while(progress < len) {
-		size_t chunk;
-		if(file->write(string + progress,
+		ssize_t chunk;
+		if(mlibc::sys_write(1, string + progress,
 				len - progress, &chunk)) {
 			return EOF;
 		}else if(!chunk) {
@@ -1010,8 +1010,8 @@ int puts(const char *string) {
 		progress += chunk;
 	}
 
-	size_t unused;
-	if (!file->write("\n", 1, &unused)) {
+	ssize_t unused;
+	if (mlibc::sys_write(1, "\n", 1, &unused)) {
 		return EOF;
 	}
 

@@ -105,13 +105,13 @@ struct fd_file : abstract_file {
 	int reopen(const char *path, const char *mode) override;
 
 	static int parse_modestring(const char *mode);
+	int io_read(char *buffer, size_t max_size, size_t *actual_size) override;
+	int io_write(const char *buffer, size_t max_size, size_t *actual_size) override;
 
 protected:
 	int determine_type(stream_type *type) override;
 	int determine_bufmode(buffer_mode *mode) override;
 
-	int io_read(char *buffer, size_t max_size, size_t *actual_size) override;
-	int io_write(const char *buffer, size_t max_size, size_t *actual_size) override;
 	int io_seek(off_t offset, int whence, off_t *new_offset) override;
 
 private:

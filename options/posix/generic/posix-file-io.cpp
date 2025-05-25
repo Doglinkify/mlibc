@@ -46,6 +46,7 @@ int memstream_mem_file::io_read(char *buffer, size_t max_size, size_t *actual_si
 }
 
 int memstream_mem_file::io_write(const char *buffer, size_t max_size, size_t *actual_size) {
+    mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	if (_pos + max_size >= _buffer_size()) {
 		_buf.resize(_pos + max_size + 1, '\0');
 		_update_ptrs();
@@ -135,6 +136,7 @@ int fmemopen_mem_file::io_read(char *buffer, size_t max_size, size_t *actual_siz
 }
 
 int fmemopen_mem_file::io_write(const char *buffer, size_t max_size, size_t *actual_size) {
+    mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	off_t bytes_write = std::min(static_cast<size_t>(_buffer_size() - _pos), max_size);
 	memcpy(_buffer().data() + _pos, buffer, bytes_write);
 	_pos += bytes_write;
@@ -222,6 +224,7 @@ int cookie_file::io_read(char *buffer, size_t max_size, size_t *actual_size) {
 }
 
 int cookie_file::io_write(const char *buffer, size_t max_size, size_t *actual_size) {
+    mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	if(!_funcs.write) {
 		return 0;
 	}

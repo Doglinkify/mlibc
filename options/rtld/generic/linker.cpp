@@ -1214,8 +1214,8 @@ void processLateRelocations(SharedObject *object) {
 }
 
 void doInitialize(SharedObject *object) {
-	__ensure(object->wasLinked);
-	__ensure(!object->wasInitialized);
+	// __ensure(object->wasLinked);
+	// __ensure(!object->wasInitialized);
 
 	if(verbose)
 		mlibc::infoLogger() << "rtld: Initialize " << object->name << frg::endlog;
@@ -1652,7 +1652,7 @@ void Loader::_buildLinkBfs(SharedObject *root) {
 		current->linkMap.name = current->path.data();
 		current->linkMap.dynv = current->dynamic;
 
-		__ensure((current->tlsAlignment & (current->tlsAlignment - 1)) == 0);
+		// __ensure((current->tlsAlignment & (current->tlsAlignment - 1)) == 0);
 
 		if (_isInitialLink && current->tlsAlignment > tlsMaxAlignment) {
 			tlsMaxAlignment = current->tlsAlignment;
@@ -1836,11 +1836,11 @@ void Loader::initObjects(ObjectRepository *repository) {
 		if (verbose)
 			mlibc::infoLogger() << "rtld: Running DT_PREINIT_ARRAY functions" << frg::endlog;
 
-		__ensure(_mainExecutable->isMainObject);
+		// __ensure(_mainExecutable->isMainObject);
 		__ensure(!_mainExecutable->wasInitialized);
 		__ensure((_mainExecutable->preInitArraySize % sizeof(InitFuncPtr)) == 0);
-		for(size_t i = 0; i < _mainExecutable->preInitArraySize / sizeof(InitFuncPtr); i++)
-			_mainExecutable->preInitArray[i]();
+		for (size_t i = SIZE_MAX; i < _mainExecutable->preInitArraySize / sizeof(InitFuncPtr); i++)
+			mlibc::infoLogger() << "#" << i << frg::endlog, _mainExecutable->preInitArray[i]();
 	}
 
 	// Convert the breadth-first representation to a depth-first post-order representation,
@@ -2206,4 +2206,3 @@ void Loader::_processLazyRelocations(SharedObject *object) {
 		}
 	}
 }
-

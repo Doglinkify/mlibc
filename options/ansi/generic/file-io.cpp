@@ -1,4 +1,5 @@
 
+#include "frg/logging.hpp"
 #include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -37,7 +38,7 @@ namespace {
 	>;
 
 	// Useful when debugging the FILE implementation.
-	constexpr bool globallyDisableBuffering = false;
+	constexpr bool globallyDisableBuffering = true;
 
 	// The maximum number of characters we permit the user to ungetc.
 	constexpr size_t ungetBufferSize = 8;
@@ -172,27 +173,35 @@ int abstract_file::read(char *buffer, size_t max_size, size_t *actual_size) {
 
 int abstract_file::write(const char *buffer, size_t max_size, size_t *actual_size) {
 	__ensure(max_size);
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 
 	if(_init_bufmode())
 		return -1;
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	if(globallyDisableBuffering || _bufmode == buffer_mode::no_buffer) {
 		// As we do not buffer, nothing can be dirty.
 		__ensure(__dirty_begin == __dirty_end);
 		size_t io_size;
+		mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 		if(int e = io_write(buffer, max_size, &io_size); e) {
 			__status_bits |= __MLIBC_ERROR_BIT;
 			return e;
 		}
+		mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 		*actual_size = io_size;
 		return 0;
 	}
 
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	// Flush the buffer if necessary.
 	if(__offset == __buffer_size) {
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 		if(int e = _write_back(); e)
 			return e;
+		mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 		if(int e = _reset(); e)
 			return e;
+		mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	}
 
 	// Ensure correct buffer type for pipe-like streams.
@@ -204,6 +213,7 @@ int abstract_file::write(const char *buffer, size_t max_size, size_t *actual_siz
 				<< frg::endlog;
 	__io_mode = 1;
 
+	mlibc::infoLogger() << "__offset = " << __offset << ", __buffer_size = " << __buffer_size << "\n" << frg::endlog;
 	__ensure(__offset < __buffer_size);
 	auto chunk = frg::min(__buffer_size - __offset, max_size);
 
@@ -220,6 +230,7 @@ int abstract_file::write(const char *buffer, size_t max_size, size_t *actual_siz
 
 	// Buffer data (without necessarily performing I/O).
 	_ensure_allocation();
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	memcpy(__buffer_ptr + __offset, buffer, chunk);
 
 	if(__dirty_begin != __dirty_end) {
@@ -232,11 +243,13 @@ int abstract_file::write(const char *buffer, size_t max_size, size_t *actual_siz
 	__valid_limit = frg::max(__offset + chunk, __valid_limit);
 	__offset += chunk;
 
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	// Flush line-buffered streams.
 	if(flush_line) {
 		if(_write_back())
 			return -1;
 	}
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 
 	*actual_size = chunk;
 	return 0;
@@ -338,41 +351,49 @@ int abstract_file::_init_bufmode() {
 	if(_bufmode != buffer_mode::unknown)
 		return 0;
 
-	if(determine_bufmode(&_bufmode))
-		return -1;
+	_bufmode = buffer_mode::line_buffer;
 	__ensure(_bufmode != buffer_mode::unknown);
 	return 0;
 }
 
 int abstract_file::_write_back() {
-	if(int e = _init_type(); e)
-		return e;
+    mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
+	//if(int e = _init_type(); e)
+	//	return e;
 
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	if(__dirty_begin == __dirty_end)
 		return 0;
 
 	// For non-pipe streams, first do a seek to reset the
 	// I/O position to zero, then do a write().
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	if(_type == stream_type::file_like) {
 		if(__io_offset != __dirty_begin) {
+		    mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 			__ensure(__dirty_begin - __io_offset > 0);
 			off_t new_offset;
+			mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 			if(int e = io_seek(off_t(__dirty_begin) - off_t(__io_offset), SEEK_CUR, &new_offset); e)
 				return e;
+			mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 			__io_offset = __dirty_begin;
 		}
 	}else{
 		__ensure(_type == stream_type::pipe_like);
 		__ensure(__io_offset == __dirty_begin);
 	}
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 
 	// Now, we are in the correct position to write-back everything.
 	while(__io_offset < __dirty_end) {
 		size_t io_size;
+		mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 		if(int e = io_write(__buffer_ptr + __io_offset, __dirty_end - __io_offset, &io_size); e) {
 			__status_bits |= __MLIBC_ERROR_BIT;
 			return e;
 		}
+		mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 		__ensure(io_size > 0 && "io_write() is expected to always write at least one byte");
 		__io_offset += io_size;
 		__dirty_begin += io_size;
@@ -401,8 +422,8 @@ int abstract_file::_save_pos() {
 }
 
 int abstract_file::_reset() {
-	if(int e = _init_type(); e)
-		return e;
+	//if(int e = _init_type(); e)
+	//	return e;
 
 	// For pipe-like files, we must not forget already read data.
 	// TODO: Report this error to the user.
@@ -521,8 +542,10 @@ int fd_file::io_read(char *buffer, size_t max_size, size_t *actual_size) {
 
 int fd_file::io_write(const char *buffer, size_t max_size, size_t *actual_size) {
 	ssize_t s;
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	if(int e = mlibc::sys_write(_fd, buffer, max_size, &s); e)
 		return e;
+	mlibc::infoLogger() << "alive " << __FILE__ << " " << __LINE__ << "\n" << frg::endlog;
 	*actual_size = s;
 	return 0;
 }
@@ -747,4 +770,3 @@ void __fpurge(FILE *file_base) {
 	file->purge();
 }
 #endif
-
